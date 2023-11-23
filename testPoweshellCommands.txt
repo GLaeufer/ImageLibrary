@@ -1,0 +1,9 @@
+$jsonContent = Get-Content -Raw -Path .\test_images.json
+Invoke-WebRequest -Uri "http://127.0.0.1:5000/images" -Method Post -Headers @{"Content-Type"="application/json"} -Body $jsonContent
+
+$response = Invoke-WebRequest -Uri "http://127.0.0.1:5000/images" -Method Get
+
+$response.Content
+
+$imageUrl = "https://marketplace.canva.com/EAEhuJyFkeY/1/0/1600w/canva-katze-vor-kaffee-nach-kaffee-zwei-fotos-und-text-meme-z-0fS-n3yf0.jpg"
+$response = Invoke-WebRequest -Uri "http://127.0.0.1:5000/image?url=$imageUrl" -Method Get

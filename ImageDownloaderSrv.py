@@ -24,6 +24,7 @@ from flask import Flask, json, request, jsonify, send_file
 import os
 import requests
 import hashlib
+from urllib.parse import unquote
 
 
 ### Initialize server
@@ -41,7 +42,7 @@ def init_server():
     global image_map
     image_map = load_image_map()
     
-    api.run(debug=True)
+    app.run(debug=True)
 
 def load_image_map():
     try:
@@ -56,12 +57,12 @@ def save_image_map():
     with open(image_map_file, 'w') as f:
         json.dump(image_map, f)
         
-def process_image(response):
+def process_image(response, url):
     # hash the image for a unique name
-    image_hash = hashlib.sha256(download_response.content).hexdigest()
+    image_hash = hashlib.sha256(response.content).hexdigest()
     
     # retrieve the file extension from the response
-    extension = download_response.headers.get('content-type').split('/')[-1]
+    extension = response.headers.get('content-type').split('/')[-1]
     
     # Could exclude non-image extensions here or right after the download request
     
@@ -70,7 +71,7 @@ def process_image(response):
     
     # store the image in the image folder
     with open(file_location, 'wb') as f:
-        f.write(download_response.content)
+        f.write(response.content)
     
     image_map[url] = file_location
         
@@ -91,7 +92,7 @@ def process_images():
         download_response = requests.get(url)
         
         if download_response.status_code == 200:
-            process_image(download_response)
+            process_image(download_response, url)
         else:
             print(f"{url} could not get processed")
             # Leaving out further error handling due to instructions
@@ -99,20 +100,28 @@ def process_images():
     save_image_map()
     return jsonify({'message':'OK'}), 200
 
-# load all currently saved images and return them as a list (Assuming that returning the urls is enough)
+# load all currently saved images and return them as a list (Assuming that returning the whole map is fine)
 @app.route('/images', methods=['GET'])
 def get_all_images():
-    image_map = load_image_map()
-    return jsonify({'url_list': image_map[url]}), 200
+    return jsonify({'url_list': image_map}), 200
 
 # Retrieve one saved image from a url
 @app.route('/image', methods=['GET'])
 def get_image():
-    url = request.args.get('url')
+    image_map = load_image_map()
+    print("map", image_map)
+    
+    full_path = request.full_path
+    url = full_path.split("url=")[1]
+    url_keys = list(image_map.keys())
+    print("full_path",full_path)
+    print("url", url)
+    print("url_keys",url_keys)
+    
     if url is None: 
         return jsonify({'error': "no url given"}), 400
-    
-    if url in image_map:
+    if url in url_keys:
+        print("YES", image_map[url])
         return send_file(image_map[url], as_attachment=True)
     else:
         return jsonify({'error': "Image not found"}), 404
