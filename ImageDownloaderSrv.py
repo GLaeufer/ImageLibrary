@@ -24,7 +24,6 @@ from flask import Flask, json, request, jsonify, send_file
 import os
 import requests
 import hashlib
-from urllib.parse import unquote
 
 
 ### Initialize server
