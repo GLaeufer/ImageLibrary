@@ -41,7 +41,7 @@ class ImageDownloaderSrvIT(unittest.TestCase):
     
         self.assertTrue(os.path.exists(testfile_path),True)
                         
-        # maybe show the image?
+        # show the image?
         img = mpimg.imread(testfile_path)
         imgplot = plt.imshow(img)
         plt.show()
