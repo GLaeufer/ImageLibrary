@@ -64,7 +64,7 @@ def process_image(response, url):
     extension = response.headers.get('content-type').split('/')[-1]
     
     # Could exclude non-image extensions here or right after the download request
-    
+    # For now assuming that all urls passed to the url_list are links to images
     filename = f'{image_hash}.{extension}'
     file_location = os.path.join(image_dir_path, filename)
     
@@ -88,18 +88,24 @@ def process_images():
     
     urls = data['url_list']
     for url in urls:
-        download_response = requests.get(url)
+        try:
+            download_response = requests.get(url)
         
-        if download_response.status_code == 200:
-            process_image(download_response, url)
-        else:
-            print(f"{url} could not get processed")
-            # Leaving out further error handling due to instructions
+            if download_response.status_code == 200:
+                process_image(download_response, url)
+            else:
+                print(f"{url} could not get processed")
+                
+        except:
+            print("BadURL") # Leaving out further error handling due to instructions
+            
+        
     
     save_image_map()
     return jsonify({'message':'OK'}), 200
 
-# load all currently saved images and return them as a list (Assuming that returning the whole map is fine)
+# load all currently saved images and return them as a list (Assuming that "a list of all images" means returning a list of Urls and not a list of image files)
+# For simplicity's sake returning the whole map here.
 @app.route('/images', methods=['GET'])
 def get_all_images():
     return jsonify({'url_list': image_map}), 200
@@ -108,19 +114,15 @@ def get_all_images():
 @app.route('/image', methods=['GET'])
 def get_image():
     image_map = load_image_map()
-    print("map", image_map)
     
     full_path = request.full_path
+    print(request)
     url = full_path.split("url=")[1]
     url_keys = list(image_map.keys())
-    print("full_path",full_path)
-    print("url", url)
-    print("url_keys",url_keys)
     
     if url is None: 
         return jsonify({'error': "no url given"}), 400
     if url in url_keys:
-        print("YES", image_map[url])
         return send_file(image_map[url], as_attachment=True)
     else:
         return jsonify({'error': "Image not found"}), 404

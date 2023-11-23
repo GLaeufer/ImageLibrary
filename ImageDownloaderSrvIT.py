@@ -26,7 +26,7 @@ class ImageDownloaderSrvIT(unittest.TestCase):
         response = requests.get("http://127.0.0.1:5000/images")
         json_data = response.json()
         url_list = json_data.get('url_list')
-        self.assertEqual(len(url_list.keys()), 3)
+        self.assertEqual(len(url_list.keys()), 4)
         
         # GET an image from the list
         test_imgage_url = "https://marketplace.canva.com/EAEhuJyFkeY/1/0/1600w/canva-katze-vor-kaffee-nach-kaffee-zwei-fotos-und-text-meme-z-0fS-n3yf0.jpg"
