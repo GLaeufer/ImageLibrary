@@ -29,11 +29,11 @@ import hashlib
 ### Initialize server
 app = Flask(__name__)
 
-# Create a directory for the Images, if it doesn't exist yet
+# Create a directory for the Images
 image_dir_path = "./ImageDir"
 os.makedirs(image_dir_path, exist_ok=True)
 
-# Load urls into memory from a file if it exists
+# Load urls into memory from a file
 image_map_file = 'saved_images.json'
 image_map = {}
 
@@ -68,11 +68,12 @@ def process_image(response, url):
     filename = f'{image_hash}.{extension}'
     file_location = os.path.join(image_dir_path, filename)
     
-    # store the image in the image folder
-    with open(file_location, 'wb') as f:
-        f.write(response.content)
-    
-    image_map[url] = file_location
+    if url not in image_map: 
+        # store the image in the image folder and update map
+        with open(file_location, 'wb') as f:
+            f.write(response.content)
+        
+        image_map[url] = file_location
         
 # Default route responds with info message
 @app.route('/')
@@ -99,9 +100,8 @@ def process_images():
         except:
             print("BadURL") # Leaving out further error handling due to instructions
             
+        save_image_map()
         
-    
-    save_image_map()
     return jsonify({'message':'OK'}), 200
 
 # load all currently saved images and return them as a list (Assuming that "a list of all images" means returning a list of Urls and not a list of image files)
