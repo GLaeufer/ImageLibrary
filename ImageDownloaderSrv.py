@@ -118,11 +118,10 @@ def get_image():
     full_path = request.full_path
     print(request)
     url = full_path.split("url=")[1]
-    url_keys = list(image_map.keys())
     
     if url is None: 
         return jsonify({'error': "no url given"}), 400
-    if url in url_keys:
+    elif url in image_map:
         return send_file(image_map[url], as_attachment=True)
     else:
         return jsonify({'error': "Image not found"}), 404
