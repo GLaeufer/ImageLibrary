@@ -68,12 +68,12 @@ def process_image(response, url):
     filename = f'{image_hash}.{extension}'
     file_location = os.path.join(image_dir_path, filename)
     
-    if url not in image_map: 
-        # store the image in the image folder and update map
-        with open(file_location, 'wb') as f:
-            f.write(response.content)
-        
-        image_map[url] = file_location
+    
+    # store the image in the image folder and update map
+    with open(file_location, 'wb') as f:
+        f.write(response.content)
+    
+    image_map[url] = file_location
         
 # Default route responds with info message
 @app.route('/')
@@ -90,12 +90,13 @@ def process_images():
     urls = data['url_list']
     for url in urls:
         try:
-            download_response = requests.get(url)
-        
-            if download_response.status_code == 200:
-                process_image(download_response, url)
-            else:
-                print(f"{url} could not get processed")
+            if url not in image_map: 
+                download_response = requests.get(url)
+            
+                if download_response.status_code == 200:
+                    process_image(download_response, url)
+                else:
+                    print(f"{url} could not get processed")
                 
         except:
             print("BadURL") # Leaving out further error handling due to instructions
@@ -108,6 +109,7 @@ def process_images():
 # For simplicity's sake returning the whole map here.
 @app.route('/images', methods=['GET'])
 def get_all_images():
+    image_map = load_image_map()
     return jsonify({'url_list': image_map}), 200
 
 # Retrieve one saved image from a url
@@ -116,7 +118,6 @@ def get_image():
     image_map = load_image_map()
     
     full_path = request.full_path
-    print(request)
     url = full_path.split("url=")[1]
     
     if url is None: 
